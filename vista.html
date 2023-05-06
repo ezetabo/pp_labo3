@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taboada Ezequiel</title>
+    <script>
+        var arrayDeObjetos = {};
+        function $(id) {
+            return document.getElementById(id);
+        }
+
+        window.addEventListener('load', function () {
+            const datosString = '[{"id":1,"nombre":"Clark","apellido":"Kent","edad":45,"alterego":"Superman","ciudad":"Metropolis","publicado":2002},{"id":2,"nombre":"Bruce","apellido":"Wayne","edad":35,"alterego":"Batman","ciudad":"Gotica","publicado":20012},{"id":3,"nombre":"Bart","apellido":"Alen","edad":30,"alterego":"Flash","ciudad":"Central","publicado":2017},{"id":4,"nombre":"Lex","apellido":"Luthor","edad":18,"enemigo":"Superman","robos":500,"asesinatos":7},{"id":5,"nombre":"Harvey","apellido":"Dent","edad":20,"enemigo":"Batman","robos":750,"asesinatos":2},{"id":666,"nombre":"Celina","apellido":"kyle","edad":23,"enemigo":"Batman","robos":25,"asesinatos":1}]';
+            arrayDeObjetos = generarArrayObjetos(datosString);
+            filtrarListaDeObjetos();
+            $("filtro").addEventListener('change', filtrarListaDeObjetos);
+            $("btn-calcular").addEventListener('click', calcularPromedio);
+            $("btn-agregar").addEventListener('click', btnAgregar);
+            $("filtro2").addEventListener('change', filtrarABM);
+        });
+    </script>
+</head>
+
+<body>
+    <div id="container-gral" style="display: flex; justify-content: center;">
+        <div id="container-formulario_p1"
+            style="border: 2px solid black; padding: 10px; background-color: rgb(108, 187, 224);">
+            <h2>Formulario de Datos</h2>
+            <div id="container-filtro">
+                <label for="filtro" style="font-weight:bold;">Filtrar por:</label>
+                <select id="filtro">
+                    <option value="todos">Todos</option>
+                    <option value="villanos">villanos</option>
+                    <option value="heroes">Heroes</option>
+                </select>
+            </div>
+
+            <div id="container-calcular">
+                <br>
+                <label for=" calcular-edad" style="font-weight:bold;">Calcular edad promedio:</label>
+                <input type="text" id="calcular-edad" readonly>
+                <button id="btn-calcular" style="font-weight:bold;">Calcular</button>
+            </div>
+
+            <div>
+                <br>
+                <label for="" style="font-weight:bold;">Mostrar Columnas:</label>
+                <br>
+                <div id="container-checkBox"></div>
+                <br>
+            </div>
+            <div id="table-container" style=" background-color: rgb(181, 237, 244);"> </div>
+            <div>
+                <br>
+                <button id="btn-agregar">Agregar</button>
+
+            </div>
+        </div>
+        <div id="container-formulario_p2"
+            style="border: 2px solid black; padding: 10px; background-color: rgb(108, 187, 224); display: none;">
+            <h1>Formulario ABM</h1>
+            <div id="container-filtro2">
+                <label for="filtro2" style="font-weight:bold;">TIpo:</label>
+                <select id="filtro2">
+                    <option value="villanos">villanos</option>
+                    <option value="heroes">heroes</option>
+                </select>
+            </div>
+            <div id="container-abm">
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script id="clases">
+
+
+
+        class Persona {
+            constructor(id, nombre, apellido, edad) {
+                this.id = id;
+                this.nombre = nombre;
+                this.apellido = apellido;
+                this.edad = edad;
+            }
+            toString() {
+                return `ID: ${this.id}, Nombre: ${this.nombre}, Apellido: ${this.apellido}, Edad: ${this.edad}`;
+            }
+            toJson() {
+                return JSON.stringify({
+                    id: this.id,
+                    nombre: this.nombre,
+                    apellido: this.apellido,
+                    edad: this.edad,
+                });
+            }
+        }
+
+        class Heroe extends Persona {
+            constructor(id, nombre, apellido, edad, alterego, ciudad, publicado) {
+                super(id, nombre, apellido, edad);
+                this.alterego = alterego;
+                this.ciudad = ciudad;
+                this.publicado = publicado;
+            }
+            toString() {
+                return `${super.toString()}, {alterego: ${super.alterego}, ciudad: ${super.ciudad},publicado: ${super.publicado}`;
+            }
+            toJson() {
+                const personaJson = super.toJson();
+                const villanoJson = JSON.stringify({
+                    alterego: this.alterego,
+                    ciudad: this.ciudad,
+                    publicado: this.publicado,
+                });
+                return Object.assign({}, JSON.parse(personaJson), JSON.parse(villanoJson));
+            }
+        }
+
+        class Villano extends Persona {
+            constructor(id, nombre, apellido, edad, enemigo, robos, asesinatos) {
+                super(id, nombre, apellido, edad);
+                this.enemigo = enemigo;
+                this.robos = robos;
+                this.asesinatos = asesinatos;
+            }
+            toString() {
+                return `${super.toString()}, {enemigo: ${super.enemigo}, robos: ${super.robos},asesinatos: ${super.asesinatos}`;
+            }
+            toJson() {
+                const personaJson = super.toJson();
+                const villanoJson = JSON.stringify({
+                    enemigo: this.enemigo,
+                    robos: this.robos,
+                    asesinatos: this.asesinatos,
+                });
+                return Object.assign({}, JSON.parse(personaJson), JSON.parse(villanoJson));
+            }
+        }
+
+        function generarArrayObjetos(datosString) {
+            const arrayDeObjetos = [];
+            JSON.parse(datosString).forEach(element => {
+                if (element.enemigo !== undefined && element.asesinatos !== undefined) {
+                    villano = new Villano(element.id, element.nombre, element.apellido, element.edad, element.enemigo, element.robos, element.asesinatos);
+                    arrayDeObjetos.push(villano)
+                } else {
+                    heroe = new Heroe(element.id, element.nombre, element.apellido, element.edad, element.alterego, element.ciudad, element.publicado);
+                    arrayDeObjetos.push(heroe)
+                }
+            });
+            return arrayDeObjetos;
+        }
+
+        function getKeys(arrayDeObjetos) {
+            const keys = [];
+            arrayDeObjetos.forEach(obj => {
+                for (let key in obj) {
+                    if (!keys.includes(key)) {
+                        keys.push(key);
+                    }
+                }
+            })
+            return keys;
+        }
+
+        function agregarObjeto(arrayDeObjetos, objeto) {
+            arrayDeObjetos.push(objeto);
+        }
+
+        function modificarObjetoPorId(lista, id, nuevoObjeto) {
+            const objeto = lista.filter((elemento) => elemento.id == id)[0];
+            if (objeto) {
+                const keys = Object.keys(objeto);
+                keys.forEach((key) => {
+                    if (key != "id") {
+                        objeto[key] = nuevoObjeto[key];
+                    }
+                });
+            }
+            return objeto || null;
+        }
+
+        function saberTipo(objeto) {
+            if (objeto.alterego !== "" && objeto.ciudad !== "") {
+                return "heroe";
+            } else if (objeto.enemigo !== "" && objeto.asesinatos !== "") {
+                return "villano";
+            }
+        }
+    </script>
+
+    <script id="form-datos">
+
+        function crearTabla(arrayDeObjetos) {
+            const tabla = document.createElement("table");
+            const thead = crearThead(arrayDeObjetos);
+            const tbody = crearTbody(arrayDeObjetos);
+            tabla.appendChild(thead);
+            tabla.appendChild(tbody);
+            return tabla;
+
+        }
+
+        function crearThead(arrayDeObjetos) {
+            const thead = document.createElement("thead");
+            const trThead = document.createElement("tr");
+            const keys = getKeys(arrayDeObjetos);
+            keys.forEach(key => {
+                const newTh = document.createElement("th");
+                const newBtn = document.createElement("button");
+                newBtn.style.border = "none";
+                newBtn.style.backgroundColor = "rgb(181, 237, 244)";
+                newBtn.style.fontWeight = "bold";
+                newBtn.addEventListener("click", ordenarPorHead)
+                newBtn.textContent = key;
+                newTh.setAttribute("id", key);
+                newBtn.setAttribute("id", key);
+                newTh.appendChild(newBtn);
+                newTh.style.border = "1px solid black";
+                newTh.style.padding = "8px";
+                trThead.appendChild(newTh);
+            });
+            thead.appendChild(trThead);
+            trThead.style.border = "1px solid black";
+            return thead;
+        }
+
+        function crearTbody(arrayDeObjetos) {
+            const tbody = document.createElement("tbody");
+            const keys = getKeys(arrayDeObjetos);
+            arrayDeObjetos.forEach(obj => {
+                const tr = document.createElement("tr");
+                for (let key in keys) {
+                    const newTd = document.createElement("td");
+                    newTd.style.border = "1px solid black";
+                    newTd.style.padding = "8px";
+                    newTd.setAttribute("id", keys[key]);
+                    newTd.addEventListener("dblclick", dbcTabla);
+                    if (obj.hasOwnProperty(keys[key])) {
+                        newTd.textContent = obj[keys[key]];
+                    }
+                    tr.appendChild(newTd);
+                }
+                tbody.appendChild(tr);
+            })
+            return tbody;
+        }
+
+    </script>
+
+    <script id="funciones-form_datos">
+
+        function filtrarListaDeObjetos(carga = true) {
+            const arraySinFiltrar = arrayDeObjetos;
+            const filtro = $("filtro");
+            let arrayFiltrado = [];
+            arrayFiltrado = arraySinFiltrar.filter((obj) => {
+                return filtro.value === "villanos" ? obj instanceof Villano :
+                    filtro.value === "heroes" ? obj instanceof Heroe : true;
+            });
+            if (carga) {
+                cargarCheckBox(arrayFiltrado);
+                cargarTabla(arrayFiltrado);
+            }
+            return arrayFiltrado;
+        }
+
+        function calcularPromedio() {
+            const input = $("calcular-edad");
+            let resultado = 0;
+            let arrayDeObjetos = filtrarListaDeObjetos();
+            let acumuladorEdades = arrayDeObjetos.reduce((acumulador, item) => {
+                return acumulador + item.edad;
+            }, 0)
+            resultado = acumuladorEdades / arrayDeObjetos.length;
+            input.value = resultado.toFixed(2);
+        }
+
+        function ordenarPorHead() {
+            const columnaAOrdenar = this.id;
+            const listaActual = filtrarListaDeObjetos(false);
+            let listaOrdenada = listaActual.map(obj => obj);
+            if (columnaAOrdenar === "id" || columnaAOrdenar === "edad" || columnaAOrdenar === "publicado" || columnaAOrdenar === "robos" || columnaAOrdenar === "asesinatos") {
+                listaOrdenada.sort((a, b) => (a[columnaAOrdenar] ? parseInt(a[columnaAOrdenar]) : 0) - (b[columnaAOrdenar] ? parseInt(b[columnaAOrdenar]) : 0));
+            } else {
+                listaOrdenada.sort((a, b) => a[columnaAOrdenar]?.localeCompare(b[columnaAOrdenar] ?? ""));
+            }
+            cargarTabla(listaOrdenada);
+            return true;
+        }
+
+        function actualizarColumnas() {
+            const tabla = $("table-container").firstChild;
+            const checkBoxes = Array.from($("container-checkBox").querySelectorAll('input[type="checkbox"]'));
+            const checkBoxesSeleccionados = checkBoxes.filter((checkBox) => checkBox.checked);
+            checkBoxes.forEach(check => {
+                const th = tabla.querySelectorAll(`th#${check.value}`);
+                const td = tabla.querySelectorAll(`td#${check.value}`);
+                if (th) {
+                    th.forEach(th => {
+                        th.style.display = check.checked ? "table-cell" : "none";
+                    })
+                }
+                if (td) {
+                    td.forEach(td => {
+                        td.style.display = check.checked ? "table-cell" : "none";
+                    })
+                }
+            });
+        }
+
+        function cargarTabla(arrayDeObjetos) {
+            $("table-container").firstChild.remove();
+            $("table-container").appendChild(crearTabla(arrayDeObjetos));
+        }
+
+        function cargarCheckBox(arrayDeObjetos) {
+            const container = $("container-checkBox");
+            const keys = getKeys(arrayDeObjetos);
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            keys.forEach(key => {
+                const checkBox = document.createElement("input");
+                checkBox.type = "checkbox";
+                checkBox.value = key;
+                checkBox.checked = true;
+                checkBox.addEventListener("change", actualizarColumnas);
+                const label = document.createElement("label");
+                label.textContent = key;
+                $("container-checkBox").appendChild(label);
+                $("container-checkBox").appendChild(checkBox);
+            });
+        }
+
+
+    </script>
+
+    <script id="form-abm">
+
+        function toggleDisplay() {
+
+            element1 = $("container-formulario_p1");
+            element2 = $("container-formulario_p2");
+
+            if (element1.style.display === "none") {
+                element1.style.display = "block";
+            } else {
+                element1.style.display = "none";
+            }
+
+            if (element2.style.display === "none") {
+                element2.style.display = "block";
+            } else {
+                element2.style.display = "none";
+            }
+        }
+
+
+        function filtrarABM() {
+            const arraySinFiltrar = arrayDeObjetos;
+            const filtro = $("filtro2");
+            let arrayFiltrado = [];
+            arrayFiltrado = arraySinFiltrar.filter((obj) => {
+                return filtro.value === "villanos" ? obj instanceof villano :
+                    filtro.value === "heroes" ? obj instanceof heroe : false;
+            });
+            $("container-abm").firstChild.remove();
+            $("container-abm").appendChild(crearFormularioABM(arrayFiltrado));
+
+        }
+
+        function crearFormularioABM(lista) {
+            const form = document.createElement("form");
+            form.setAttribute("id", "abm-form");
+            const keys = getKeys(lista);
+            keys.forEach(key => {
+                const div = document.createElement("div");
+                div.style.display = "flex";
+                div.style.padding = "5px";
+                div.style.justifyContent = "flex-end";
+                const label = document.createElement("label");
+                label.setAttribute("for", key);
+                label.textContent = key;
+                label.style.padding = "5px";
+                const input = document.createElement("input");
+                input.setAttribute("type", "text");
+                input.setAttribute("id", key);
+                input.setAttribute("name", key);
+                input.style.padding = "5px";
+                div.appendChild(label);
+                div.appendChild(input);
+                form.appendChild(div);
+            });
+            return form;
+        }
+        function dbcTabla() {
+
+            const fila = event.target.parentElement;
+            const celdas = fila.getElementsByTagName('td');
+            const objeto = {};
+            for (let i = 0; i < celdas.length; i++) {
+                const propiedad = celdas[i].getAttribute('id');
+                objeto[propiedad] = celdas[i].textContent;
+
+            }
+
+
+            const form = document.createElement("form");
+            form.setAttribute("id", "abm-form");
+            Object.keys(objeto).forEach(propiedad => {
+                const div = document.createElement("div");
+                div.style.display = "flex";
+                div.style.padding = "5px";
+                div.style.justifyContent = "flex-end";
+                const input = document.createElement("input");
+                input.setAttribute("type", "text");
+                input.setAttribute("id", propiedad);
+                input.setAttribute("name", propiedad);
+                input.setAttribute("value", objeto[propiedad])
+                input.style.padding = "5px";
+                input.value = objeto[propiedad] ? objeto[propiedad] : '';
+                input.hidden = input.value.trim() === '';
+                if (propiedad === "id") {
+                    input.setAttribute("readonly", true);
+                }
+                if (input.value !== '') {
+                    const label = document.createElement("label");
+                    label.setAttribute("for", propiedad);
+                    label.textContent = propiedad;
+                    label.style.padding = "5px";
+                    div.appendChild(label);
+                    div.appendChild(input);
+                    form.appendChild(div);
+                }
+            });
+            const div2 = document.createElement("div");
+            div2.style.display = "flex";
+            div2.style.padding = "5px";
+            div2.style.justifyContent = " space-between";
+            const btnAceptar = document.createElement("button");
+            btnAceptar.style.fontWeight = "bold";
+            btnAceptar.addEventListener("click", btnModificar);
+            btnAceptar.textContent = "Aceptar";
+            const btnCancelar = document.createElement("button");
+            btnCancelar.style.fontWeight = "bold";
+            btnCancelar.addEventListener("click", toggleDisplay);
+            btnCancelar.textContent = "Cancelar";
+            div2.appendChild(btnAceptar);
+            div2.appendChild(btnCancelar);
+            form.appendChild(div2);
+            const filtro = $("filtro2");
+            if (saberTipo(objeto) === "villano") {
+                filtro.value = "villanos";
+            } else {
+                filtro.value = "heroes";
+            }
+            filtro.setAttribute("disabled", "true");
+            toggleDisplay();
+            $("container-abm").firstChild.remove();
+            $("container-abm").appendChild(form);
+
+        }
+
+        function btnModificar() {
+            const form = $("abm-form");
+            const obj = {};
+            for (let i = 0; i < form.elements.length; i++) {
+                const input = form.elements[i];
+                const value = input.value;
+                const key = input.id;
+                obj[key] = value;
+            }
+
+            debugger
+            console.log(obj);
+            if (saberTipo(obj) == "heroe") {
+                debugger
+                const persona = new Heroe(obj.id, obj.nombre, obj.apellido, obj.edad, obj.alterego, obj.ciudad, obj.publicado)
+                //console.log(obj.id, obj.nombre, obj.apellido, obj.edad, obj.alterego, obj.ciudad, obj.publicado);
+                modificarObjetoPorId(arrayDeObjetos, persona.id, persona);
+                cargarTabla(arrayDeObjetos);
+            } else {
+                const persona = new Villano(obj.id, obj.nombre, obj.apellido, obj.edad, obj.enemigo, obj.robos, obj.asesinatos);
+                modificarObjetoPorId(arrayDeObjetos, obj.id, persona);
+                cargarTabla(arrayDeObjetos);
+            }
+
+            modificarObjetoPorId(arrayDeObjetos, obj.id, persona);
+            cargarTabla(arrayDeObjetos);
+            toggleDisplay();
+        }
+
+        function btnAgregar() {
+            const filtro = $("filtro");
+            const fila = event.target.parentElement;
+            const celdas = fila.getElementsByTagName('td');
+            const keys = getKeys(arrayDeObjetos);
+            
+            const form = document.createElement("form");
+            form.setAttribute("id", "abm-form");
+            keys.forEach(propiedad => {
+                const div = document.createElement("div");
+                div.style.display = "flex";
+                div.style.padding = "5px";
+                div.style.justifyContent = "flex-end";
+                const input = document.createElement("input");
+                input.setAttribute("type", "text");
+                input.setAttribute("id", propiedad);
+                input.setAttribute("name", propiedad);                
+                input.style.padding = "5px";
+                const label = document.createElement("label");
+                label.setAttribute("for", propiedad);
+                label.textContent = propiedad;
+                label.style.padding = "5px";
+                div.appendChild(label);
+                div.appendChild(input);
+                form.appendChild(div);
+
+            });
+            const div2 = document.createElement("div");
+            div2.style.display = "flex";
+            div2.style.padding = "5px";
+            div2.style.justifyContent = " space-between";
+            const btnAceptar = document.createElement("button");
+            btnAceptar.style.fontWeight = "bold";
+            btnAceptar.addEventListener("click", btnModificar);
+            btnAceptar.textContent = "Aceptar";
+            const btnCancelar = document.createElement("button");
+            btnCancelar.style.fontWeight = "bold";
+            btnCancelar.addEventListener("click", toggleDisplay);
+            btnCancelar.textContent = "Cancelar";
+            div2.appendChild(btnAceptar);
+            div2.appendChild(btnCancelar);
+            form.appendChild(div2);
+            
+              
+            toggleDisplay();
+            $("container-abm").firstChild.remove();
+            $("container-abm").appendChild(form);
+
+        }
+
+        function btnModificar() {
+            const form = $("abm-form");
+            const obj = {};
+            for (let i = 0; i < form.elements.length; i++) {
+                const input = form.elements[i];
+                const value = input.value;
+                const key = input.id;
+                obj[key] = value;
+            }
+
+            console.log(obj);
+            if (saberTipo(obj) == "heroe") {
+                debugger
+                const persona = new Heroe(obj.id, obj.nombre, obj.apellido, obj.edad, obj.alterego, obj.ciudad, obj.publicado)
+                //console.log(obj.id, obj.nombre, obj.apellido, obj.edad, obj.alterego, obj.ciudad, obj.publicado);
+                modificarObjetoPorId(arrayDeObjetos, persona.id, persona);
+                cargarTabla(arrayDeObjetos);
+            } else {
+                const persona = new Villano(obj.id, obj.nombre, obj.apellido, obj.edad, obj.enemigo, obj.robos, obj.asesinatos);
+                modificarObjetoPorId(arrayDeObjetos, obj.id, persona);
+                cargarTabla(arrayDeObjetos);
+            }
+
+            modificarObjetoPorId(arrayDeObjetos, obj.id, persona);
+            cargarTabla(arrayDeObjetos);
+            toggleDisplay();
+        }
+
+
+    </script>
+
+</body>
+
+</html>
